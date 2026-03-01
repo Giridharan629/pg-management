@@ -21,7 +21,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Something went wrong on the server!' });
 });
 
-app.get('/', (res, res)=>{
+app.get('/', (req, res)=>{
     res.send({"status" : "running", "message" : "api working fine"});
 })
 
