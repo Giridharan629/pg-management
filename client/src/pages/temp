@@ -1,0 +1,149 @@
+
+            {/* === ALL MODALS (FULLY INTEGRATED) === */}
+
+            {/* 1. Tenant Details / KYC Modal */}
+            {showDetailsModal && detailsTenant && (
+                <div className="fixed inset-0 bg-[#000000ba] bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center border-b pb-4 mb-6">
+                            <h2 className="text-2xl font-bold text-slate-800">Tenant Profile</h2>
+                            <button onClick={() => setShowDetailsModal(false)} className="text-slate-400 hover:text-red-500 font-bold text-xl">&times;</button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <p className="text-sm text-slate-500 font-bold">Full Name</p>
+                                <p className="font-semibold text-lg">{detailsTenant.fullName}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-slate-500 font-bold">Phone / Emergency</p>
+                                <p className="font-semibold">{detailsTenant.phoneNumber} / {detailsTenant.emergencyContact}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-slate-500 font-bold">Aadhaar Number</p>
+                                <p className="font-semibold">{detailsTenant.aadhaarNumber}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-slate-500 font-bold">Blood Group</p>
+                                <p className="font-semibold text-red-600">{detailsTenant.bloodGroup || 'N/A'}</p>
+                            </div>
+                            <div className="col-span-2">
+                                <p className="text-sm text-slate-500 font-bold">Permanent Address</p>
+                                <p className="font-semibold">{detailsTenant.permanentAddress}</p>
+                            </div>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-800 mb-4 border-t pt-4">Uploaded Documents</h3>
+                        <div className="grid grid-cols-3 gap-4">
+                            {detailsTenant.photoUrl && <a href={detailsTenant.photoUrl} target="_blank" rel="noreferrer" className="block p-3 bg-indigo-50 border border-indigo-100 rounded text-center text-sm font-bold text-indigo-700 hover:bg-indigo-100">📷 View Photo</a>}
+                            {detailsTenant.aadhaarFrontUrl && <a href={detailsTenant.aadhaarFrontUrl} target="_blank" rel="noreferrer" className="block p-3 bg-indigo-50 border border-indigo-100 rounded text-center text-sm font-bold text-indigo-700 hover:bg-indigo-100">💳 Aadhaar Front</a>}
+                            {detailsTenant.aadhaarBackUrl && <a href={detailsTenant.aadhaarBackUrl} target="_blank" rel="noreferrer" className="block p-3 bg-indigo-50 border border-indigo-100 rounded text-center text-sm font-bold text-indigo-700 hover:bg-indigo-100">💳 Aadhaar Back</a>}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            
+            {/* 2. Approve Modal with AC/Non-AC and Auto-Rent */}
+            {showModal && (
+                <div className="fixed inset-0 bg-[#000000ba] bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-xl shadow-lg w-96 border-t-4 border-indigo-600">
+                        <h2 className="text-xl font-bold mb-4">Approve {selectedTenant?.fullName}</h2>
+                        <form onSubmit={handleApprove} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">Select Bed</label>
+                                <select required className="w-full p-2 border rounded outline-none focus:ring-2 focus:ring-indigo-500" value={approvalData.bedId} onChange={handleBedSelection}>
+                                    <option value="">-- Choose an empty bed --</option>
+                                    {beds.filter(b => !b.isOccupied).map(b => {
+                                        // Match bed to room to get AC/Non-AC status
+                                        const parentRoom = rooms.find(r => r._id === (b.roomId._id || b.roomId));
+                                        return <option key={b._id} value={b._id}>Bed {b.bedNumber} ({parentRoom?.roomType || 'Unknown'})</option>
+                                    })}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">Monthly Rent</label>
+                                <input type="number" placeholder="Rent auto-fills here" required className="w-full p-2 border rounded bg-slate-50" value={approvalData.monthlyRent} onChange={(e) => setApprovalData({...approvalData, monthlyRent: e.target.value})} />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">Security Deposit Collected</label>
+                                <input type="number" placeholder="e.g. 5000" required className="w-full p-2 border rounded" onChange={(e) => setApprovalData({...approvalData, securityDeposit: e.target.value})} />
+                            </div>
+                            
+                            <div className="flex justify-end space-x-2 pt-2"><button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-slate-200 rounded font-bold">Cancel</button><button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded font-bold">Confirm</button></div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            
+            
+
+            {/* 3. Payment Modal */}
+            {showPaymentModal && (
+                <div className="fixed inset-0 bg-[#000000ba] bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-xl shadow-lg w-96 border-t-4 border-emerald-500">
+                        <h2 className="text-xl font-bold mb-4 text-emerald-700">Log Payment</h2>
+                        <form onSubmit={handlePaymentSubmit} className="space-y-4">
+                            {/* Inside the Payment Modal */}
+                            <select 
+                                className="w-full p-2 border rounded" 
+                                value={paymentData.transactionType} 
+                                onChange={handleTransactionTypeChange} // <-- Attach the new logic here
+                            >
+                                <option value="Room_Rent">Room Rent</option>
+                                <option value="Current_Bill">Current Bill (Electricity)</option>
+                                <option value="Security_Deposit">Security Deposit</option>
+                            </select>
+
+                            {/* The Amount Input box */}
+                            <input 
+                                type="number" 
+                                placeholder="Amount" 
+                                required 
+                                className="w-full p-2 border rounded font-bold text-emerald-700 bg-emerald-50" 
+                                value={paymentData.amount || ''} 
+                                onChange={(e) => setPaymentData({...paymentData, amount: e.target.value})} 
+                            />
+                            <select className="w-full p-2 border rounded" value={paymentData.paymentMode} onChange={(e) => setPaymentData({...paymentData, paymentMode: e.target.value})}>
+                                <option value="Cash">Cash</option><option value="Online">Online (UPI)</option>
+                            </select>
+                            {paymentData.paymentMode === 'Online' && <input type="text" required className="w-full p-2 border rounded" placeholder="UPI ID" onChange={(e) => setPaymentData({...paymentData, transactionReferenceId: e.target.value})} />}
+                            <input type="text" placeholder="Month/Year" className="w-full p-2 border rounded" value={paymentData.billingCycle} onChange={(e) => setPaymentData({...paymentData, billingCycle: e.target.value})} />
+                            <div className="flex justify-end space-x-2 pt-2"><button type="button" onClick={() => setShowPaymentModal(false)} className="px-4 py-2 bg-slate-200 rounded font-bold">Cancel</button><button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded font-bold">Save</button></div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* 4. Checkout Modal */}
+            {showCheckoutModal && (
+                <div className="fixed inset-0 bg-[#000000ba] bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-xl shadow-lg w-96 border-t-4 border-red-600">
+                        <h2 className="text-xl font-bold mb-4 text-red-700">Confirm Checkout</h2>
+                        <p className="text-slate-700 mb-6">Checkout <strong>{checkoutTenantData?.fullName}</strong> and free up their bed?</p>
+                        <div className="flex justify-end space-x-2"><button onClick={() => setShowCheckoutModal(false)} className="px-4 py-2 bg-slate-200 rounded font-bold">Cancel</button><button onClick={handleCheckoutSubmit} className="px-4 py-2 bg-red-600 text-white rounded font-bold">Confirm</button></div>
+                    </div>
+                </div>
+            )}
+
+            {/* 5. Add Room Modal */}
+            {showRoomModal && (
+                <div className="fixed inset-0 bg-[#000000ba] bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-xl shadow-lg w-96 border-t-4 border-indigo-600">
+                        <h2 className="text-xl font-bold mb-4 text-indigo-700">Add New Room</h2>
+                        <form onSubmit={handleAddRoom} className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <input type="text" required placeholder="Room Number" className="w-full p-2 border rounded" value={roomData.roomNumber} onChange={(e) => setRoomData({...roomData, roomNumber: e.target.value})} />
+                                <input type="number" required placeholder="Floor" className="w-full p-2 border rounded" value={roomData.floor} onChange={(e) => setRoomData({...roomData, floor: e.target.value})} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <select className="w-full p-2 border rounded" value={roomData.roomType} onChange={(e) => setRoomData({...roomData, roomType: e.target.value})}>
+                                    <option value="Non-AC">Non-AC</option><option value="AC">AC</option>
+                                </select>
+                                <input type="number" required max="8" placeholder="Total Beds" className="w-full p-2 border rounded" value={roomData.totalCapacity} onChange={(e) => setRoomData({...roomData, totalCapacity: e.target.value})} />
+                            </div>
+                            <input type="number" required placeholder="Default Rent Per Bed" className="w-full p-2 border rounded" value={roomData.defaultRent} onChange={(e) => setRoomData({...roomData, defaultRent: e.target.value})} />
+                            <div className="flex justify-end space-x-2 pt-2"><button type="button" onClick={() => setShowRoomModal(false)} className="px-4 py-2 bg-slate-200 rounded font-bold">Cancel</button><button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded font-bold">Save Room</button></div>
+                        </form>
+                    </div>
+                </div>
+            )}
